@@ -50,6 +50,25 @@ export const writeClient = async (
     clientName?: string,
     request?: string
 ): Promise<void> => {
+    // if there are any duplicates in the models, append a number
+    const modelNames = client.models.map((model) => model.name);
+    const modelNamesSet = new Set(modelNames);
+    if (modelNames.length !== modelNamesSet.size) {
+        const modelNamesMap = new Map<string, number>();
+        for (const modelName of modelNames) {
+            if (modelNamesMap.has(modelName)) {
+                modelNamesMap.set(modelName, modelNamesMap.get(modelName)! + 1);
+            } else {
+                modelNamesMap.set(modelName, 1);
+            }
+        }
+        for (const model of client.models) {
+            if (modelNamesMap.get(model.name)! > 1) {
+                model.name = `${model.name}${modelNamesMap.get(model.name)}`;
+            }
+        }
+    }
+
     const outputPath = resolve(process.cwd(), output);
     const outputPathCore = resolve(outputPath, 'core');
     const outputPathModels = resolve(outputPath, 'models');
